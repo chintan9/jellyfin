@@ -1,6 +1,4 @@
-﻿#nullable disable
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
@@ -50,10 +48,10 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// <param name="imageLanguages">A comma-separated list of image languages.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The TMDb movie or null if not found.</returns>
-        public async Task<Movie> GetMovieAsync(int tmdbId, string language, string imageLanguages, CancellationToken cancellationToken)
+        public async Task<Movie?> GetMovieAsync(int tmdbId, string? language, string? imageLanguages, CancellationToken cancellationToken)
         {
             var key = $"movie-{tmdbId.ToString(CultureInfo.InvariantCulture)}-{language}";
-            if (_memoryCache.TryGetValue(key, out Movie movie))
+            if (_memoryCache.TryGetValue(key, out Movie? movie))
             {
                 return movie;
             }
@@ -89,10 +87,10 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// <param name="imageLanguages">A comma-separated list of image languages.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The TMDb collection or null if not found.</returns>
-        public async Task<Collection> GetCollectionAsync(int tmdbId, string language, string imageLanguages, CancellationToken cancellationToken)
+        public async Task<Collection?> GetCollectionAsync(int tmdbId, string? language, string? imageLanguages, CancellationToken cancellationToken)
         {
             var key = $"collection-{tmdbId.ToString(CultureInfo.InvariantCulture)}-{language}";
-            if (_memoryCache.TryGetValue(key, out Collection collection))
+            if (_memoryCache.TryGetValue(key, out Collection? collection))
             {
                 return collection;
             }
@@ -122,10 +120,10 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// <param name="imageLanguages">A comma-separated list of image languages.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The TMDb tv show information or null if not found.</returns>
-        public async Task<TvShow> GetSeriesAsync(int tmdbId, string language, string imageLanguages, CancellationToken cancellationToken)
+        public async Task<TvShow?> GetSeriesAsync(int tmdbId, string? language, string? imageLanguages, CancellationToken cancellationToken)
         {
             var key = $"series-{tmdbId.ToString(CultureInfo.InvariantCulture)}-{language}";
-            if (_memoryCache.TryGetValue(key, out TvShow series))
+            if (_memoryCache.TryGetValue(key, out TvShow? series))
             {
                 return series;
             }
@@ -162,7 +160,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// <param name="imageLanguages">A comma-separated list of image languages.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The TMDb tv show episode group information or null if not found.</returns>
-        private async Task<TvGroupCollection> GetSeriesGroupAsync(int tvShowId, string displayOrder, string language, string imageLanguages, CancellationToken cancellationToken)
+        private async Task<TvGroupCollection?> GetSeriesGroupAsync(int tvShowId, string displayOrder, string? language, string? imageLanguages, CancellationToken cancellationToken)
         {
             TvGroupType? groupType =
                 string.Equals(displayOrder, "originalAirDate", StringComparison.Ordinal) ? TvGroupType.OriginalAirDate :
@@ -180,7 +178,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
             }
 
             var key = $"group-{tvShowId.ToString(CultureInfo.InvariantCulture)}-{displayOrder}-{language}";
-            if (_memoryCache.TryGetValue(key, out TvGroupCollection group))
+            if (_memoryCache.TryGetValue(key, out TvGroupCollection? group))
             {
                 return group;
             }
@@ -217,10 +215,10 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// <param name="imageLanguages">A comma-separated list of image languages.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The TMDb tv season information or null if not found.</returns>
-        public async Task<TvSeason> GetSeasonAsync(int tvShowId, int seasonNumber, string language, string imageLanguages, CancellationToken cancellationToken)
+        public async Task<TvSeason?> GetSeasonAsync(int tvShowId, int seasonNumber, string? language, string? imageLanguages, CancellationToken cancellationToken)
         {
             var key = $"season-{tvShowId.ToString(CultureInfo.InvariantCulture)}-s{seasonNumber.ToString(CultureInfo.InvariantCulture)}-{language}";
-            if (_memoryCache.TryGetValue(key, out TvSeason season))
+            if (_memoryCache.TryGetValue(key, out TvSeason? season))
             {
                 return season;
             }
@@ -254,10 +252,10 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// <param name="imageLanguages">A comma-separated list of image languages.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The TMDb tv episode information or null if not found.</returns>
-        public async Task<TvEpisode> GetEpisodeAsync(int tvShowId, int seasonNumber, int episodeNumber, string displayOrder, string language, string imageLanguages, CancellationToken cancellationToken)
+        public async Task<TvEpisode?> GetEpisodeAsync(int tvShowId, int seasonNumber, int episodeNumber, string displayOrder, string? language, string? imageLanguages, CancellationToken cancellationToken)
         {
             var key = $"episode-{tvShowId.ToString(CultureInfo.InvariantCulture)}-s{seasonNumber.ToString(CultureInfo.InvariantCulture)}e{episodeNumber.ToString(CultureInfo.InvariantCulture)}-{displayOrder}-{language}";
-            if (_memoryCache.TryGetValue(key, out TvEpisode episode))
+            if (_memoryCache.TryGetValue(key, out TvEpisode? episode))
             {
                 return episode;
             }
@@ -301,10 +299,10 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// <param name="language">The episode's language.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The TMDb person information or null if not found.</returns>
-        public async Task<Person> GetPersonAsync(int personTmdbId, string language, CancellationToken cancellationToken)
+        public async Task<Person?> GetPersonAsync(int personTmdbId, string language, CancellationToken cancellationToken)
         {
             var key = $"person-{personTmdbId.ToString(CultureInfo.InvariantCulture)}-{language}";
-            if (_memoryCache.TryGetValue(key, out Person person))
+            if (_memoryCache.TryGetValue(key, out Person? person))
             {
                 return person;
             }
@@ -333,14 +331,14 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// <param name="language">The item's language.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The TMDb item or null if not found.</returns>
-        public async Task<FindContainer> FindByExternalIdAsync(
+        public async Task<FindContainer?> FindByExternalIdAsync(
             string externalId,
             FindExternalSource source,
             string language,
             CancellationToken cancellationToken)
         {
             var key = $"find-{source.ToString()}-{externalId.ToString(CultureInfo.InvariantCulture)}-{language}";
-            if (_memoryCache.TryGetValue(key, out FindContainer result))
+            if (_memoryCache.TryGetValue(key, out FindContainer? result))
             {
                 return result;
             }
@@ -372,7 +370,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         public async Task<IReadOnlyList<SearchTv>> SearchSeriesAsync(string name, string language, int year = 0, CancellationToken cancellationToken = default)
         {
             var key = $"searchseries-{name}-{language}";
-            if (_memoryCache.TryGetValue(key, out SearchContainer<SearchTv> series))
+            if (_memoryCache.TryGetValue(key, out SearchContainer<SearchTv>? series) && series is not null)
             {
                 return series.Results;
             }
@@ -400,7 +398,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         public async Task<IReadOnlyList<SearchPerson>> SearchPersonAsync(string name, CancellationToken cancellationToken)
         {
             var key = $"searchperson-{name}";
-            if (_memoryCache.TryGetValue(key, out SearchContainer<SearchPerson> person))
+            if (_memoryCache.TryGetValue(key, out SearchContainer<SearchPerson>? person) && person is not null)
             {
                 return person.Results;
             }
@@ -442,7 +440,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         public async Task<IReadOnlyList<SearchMovie>> SearchMovieAsync(string name, int year, string language, CancellationToken cancellationToken)
         {
             var key = $"moviesearch-{name}-{year.ToString(CultureInfo.InvariantCulture)}-{language}";
-            if (_memoryCache.TryGetValue(key, out SearchContainer<SearchMovie> movies))
+            if (_memoryCache.TryGetValue(key, out SearchContainer<SearchMovie>? movies) && movies is not null)
             {
                 return movies.Results;
             }
@@ -471,7 +469,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         public async Task<IReadOnlyList<SearchCollection>> SearchCollectionAsync(string name, string language, CancellationToken cancellationToken)
         {
             var key = $"collectionsearch-{name}-{language}";
-            if (_memoryCache.TryGetValue(key, out SearchContainer<SearchCollection> collections))
+            if (_memoryCache.TryGetValue(key, out SearchContainer<SearchCollection>? collections) && collections is not null)
             {
                 return collections.Results;
             }
@@ -496,7 +494,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// <param name="size">The image size to fetch.</param>
         /// <param name="path">The relative URL of the image.</param>
         /// <returns>The absolute URL.</returns>
-        private string GetUrl(string size, string path)
+        private string? GetUrl(string? size, string path)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -511,7 +509,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// </summary>
         /// <param name="posterPath">The relative URL of the poster.</param>
         /// <returns>The absolute URL.</returns>
-        public string GetPosterUrl(string posterPath)
+        public string? GetPosterUrl(string posterPath)
         {
             return GetUrl(Plugin.Instance.Configuration.PosterSize, posterPath);
         }
@@ -521,7 +519,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// </summary>
         /// <param name="actorProfilePath">The relative URL of the profile image.</param>
         /// <returns>The absolute URL.</returns>
-        public string GetProfileUrl(string actorProfilePath)
+        public string? GetProfileUrl(string actorProfilePath)
         {
             return GetUrl(Plugin.Instance.Configuration.ProfileSize, actorProfilePath);
         }
@@ -531,55 +529,45 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// </summary>
         /// <param name="images">The input images.</param>
         /// <param name="requestLanguage">The requested language.</param>
-        /// <param name="results">The collection to add the remote images into.</param>
-        public void ConvertPostersToRemoteImageInfo(List<ImageData> images, string requestLanguage, List<RemoteImageInfo> results)
-        {
-            ConvertToRemoteImageInfo(images, Plugin.Instance.Configuration.PosterSize, ImageType.Primary, requestLanguage, results);
-        }
+        /// <returns>The remote images.</returns>
+        public IEnumerable<RemoteImageInfo> ConvertPostersToRemoteImageInfo(IReadOnlyList<ImageData> images, string requestLanguage)
+            => ConvertToRemoteImageInfo(images, Plugin.Instance.Configuration.PosterSize, ImageType.Primary, requestLanguage);
 
         /// <summary>
         /// Converts backdrop <see cref="ImageData"/>s into <see cref="RemoteImageInfo"/>s.
         /// </summary>
         /// <param name="images">The input images.</param>
         /// <param name="requestLanguage">The requested language.</param>
-        /// <param name="results">The collection to add the remote images into.</param>
-        public void ConvertBackdropsToRemoteImageInfo(List<ImageData> images, string requestLanguage, List<RemoteImageInfo> results)
-        {
-            ConvertToRemoteImageInfo(images, Plugin.Instance.Configuration.BackdropSize, ImageType.Backdrop, requestLanguage, results);
-        }
+        /// <returns>The remote images.</returns>
+        public IEnumerable<RemoteImageInfo> ConvertBackdropsToRemoteImageInfo(IReadOnlyList<ImageData> images, string requestLanguage)
+            => ConvertToRemoteImageInfo(images, Plugin.Instance.Configuration.BackdropSize, ImageType.Backdrop, requestLanguage);
 
         /// <summary>
         /// Converts logo <see cref="ImageData"/>s into <see cref="RemoteImageInfo"/>s.
         /// </summary>
         /// <param name="images">The input images.</param>
         /// <param name="requestLanguage">The requested language.</param>
-        /// <param name="results">The collection to add the remote images into.</param>
-        public void ConvertLogosToRemoteImageInfo(List<ImageData> images, string requestLanguage, List<RemoteImageInfo> results)
-        {
-            ConvertToRemoteImageInfo(images, Plugin.Instance.Configuration.LogoSize, ImageType.Logo, requestLanguage, results);
-        }
+        /// <returns>The remote images.</returns>
+        public IEnumerable<RemoteImageInfo> ConvertLogosToRemoteImageInfo(IReadOnlyList<ImageData> images, string requestLanguage)
+            => ConvertToRemoteImageInfo(images, Plugin.Instance.Configuration.LogoSize, ImageType.Logo, requestLanguage);
 
         /// <summary>
         /// Converts profile <see cref="ImageData"/>s into <see cref="RemoteImageInfo"/>s.
         /// </summary>
         /// <param name="images">The input images.</param>
         /// <param name="requestLanguage">The requested language.</param>
-        /// <param name="results">The collection to add the remote images into.</param>
-        public void ConvertProfilesToRemoteImageInfo(List<ImageData> images, string requestLanguage, List<RemoteImageInfo> results)
-        {
-            ConvertToRemoteImageInfo(images, Plugin.Instance.Configuration.ProfileSize, ImageType.Primary, requestLanguage, results);
-        }
+        /// <returns>The remote images.</returns>
+        public IEnumerable<RemoteImageInfo> ConvertProfilesToRemoteImageInfo(IReadOnlyList<ImageData> images, string requestLanguage)
+            => ConvertToRemoteImageInfo(images, Plugin.Instance.Configuration.ProfileSize, ImageType.Primary, requestLanguage);
 
         /// <summary>
         /// Converts still <see cref="ImageData"/>s into <see cref="RemoteImageInfo"/>s.
         /// </summary>
         /// <param name="images">The input images.</param>
         /// <param name="requestLanguage">The requested language.</param>
-        /// <param name="results">The collection to add the remote images into.</param>
-        public void ConvertStillsToRemoteImageInfo(List<ImageData> images, string requestLanguage, List<RemoteImageInfo> results)
-        {
-            ConvertToRemoteImageInfo(images, Plugin.Instance.Configuration.StillSize, ImageType.Primary, requestLanguage, results);
-        }
+        /// <returns>The remote images.</returns>
+        public IEnumerable<RemoteImageInfo> ConvertStillsToRemoteImageInfo(IReadOnlyList<ImageData> images, string requestLanguage)
+            => ConvertToRemoteImageInfo(images, Plugin.Instance.Configuration.StillSize, ImageType.Primary, requestLanguage);
 
         /// <summary>
         /// Converts <see cref="ImageData"/>s into <see cref="RemoteImageInfo"/>s.
@@ -588,8 +576,8 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// <param name="size">The size of the image to fetch.</param>
         /// <param name="type">The type of the image.</param>
         /// <param name="requestLanguage">The requested language.</param>
-        /// <param name="results">The collection to add the remote images into.</param>
-        private void ConvertToRemoteImageInfo(List<ImageData> images, string size, ImageType type, string requestLanguage, List<RemoteImageInfo> results)
+        /// <returns>The remote images.</returns>
+        private IEnumerable<RemoteImageInfo> ConvertToRemoteImageInfo(IReadOnlyList<ImageData> images, string? size, ImageType type, string requestLanguage)
         {
             // sizes provided are for original resolution, don't store them when downloading scaled images
             var scaleImage = !string.Equals(size, "original", StringComparison.OrdinalIgnoreCase);
@@ -598,7 +586,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
             {
                 var image = images[i];
 
-                results.Add(new RemoteImageInfo
+                yield return new RemoteImageInfo
                 {
                     Url = GetUrl(size, image.FilePath),
                     CommunityRating = image.VoteAverage,
@@ -609,7 +597,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
                     ProviderName = TmdbUtils.ProviderName,
                     Type = type,
                     RatingType = RatingType.Score
-                });
+                };
             }
         }
 

@@ -151,7 +151,6 @@ namespace MediaBrowser.Providers.Manager
                         ApplySearchResult(id, refreshOptions.SearchResult);
                     }
 
-                    // await FindIdentities(id, cancellationToken).ConfigureAwait(false);
                     id.IsAutomated = refreshOptions.IsAutomated;
 
                     var result = await RefreshWithProviders(metadataResult, id, refreshOptions, providers, ImageProvider, cancellationToken).ConfigureAwait(false);
@@ -334,6 +333,12 @@ namespace MediaBrowser.Providers.Manager
                 updateType |= UpdateCumulativeRunTimeTicks(item, children);
                 updateType |= UpdateDateLastMediaAdded(item, children);
 
+                // don't update user-changeable metadata for locked items
+                if (item.IsLocked)
+                {
+                    return updateType;
+                }
+
                 if (EnableUpdatingPremiereDateFromChildren)
                 {
                     updateType |= UpdatePremiereDate(item, children);
@@ -375,7 +380,7 @@ namespace MediaBrowser.Providers.Manager
                 if (!folder.RunTimeTicks.HasValue || folder.RunTimeTicks.Value != ticks)
                 {
                     folder.RunTimeTicks = ticks;
-                    return ItemUpdateType.MetadataEdit;
+                    return ItemUpdateType.MetadataImport;
                 }
             }
 
@@ -444,8 +449,8 @@ namespace MediaBrowser.Providers.Manager
                 }
             }
 
-            if ((originalPremiereDate ?? DateTime.MinValue) != (item.PremiereDate ?? DateTime.MinValue) ||
-                (originalProductionYear ?? -1) != (item.ProductionYear ?? -1))
+            if ((originalPremiereDate ?? DateTime.MinValue) != (item.PremiereDate ?? DateTime.MinValue)
+                || (originalProductionYear ?? -1) != (item.ProductionYear ?? -1))
             {
                 updateType |= ItemUpdateType.MetadataEdit;
             }
@@ -685,7 +690,8 @@ namespace MediaBrowser.Providers.Manager
                         {
                             try
                             {
-                                if (!options.IsReplacingImage(remoteImage.Type))
+                                if (item.ImageInfos.Any(x => x.Type == remoteImage.Type)
+                                    && !options.IsReplacingImage(remoteImage.Type))
                                 {
                                     continue;
                                 }

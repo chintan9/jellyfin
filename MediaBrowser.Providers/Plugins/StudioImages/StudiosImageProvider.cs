@@ -53,7 +53,7 @@ namespace MediaBrowser.Providers.Plugins.StudioImages
         /// <inheritdoc />
         public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
         {
-            return new List<ImageType>
+            return new ImageType[]
             {
                 ImageType.Thumb
             };
@@ -138,9 +138,15 @@ namespace MediaBrowser.Providers.Plugins.StudioImages
                 var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(file));
-                await using var response = await httpClient.GetStreamAsync(url, cancellationToken).ConfigureAwait(false);
-                await using var fileStream = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.None, IODefaults.FileStreamBufferSize, FileOptions.Asynchronous);
-                await response.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
+                var response = await httpClient.GetStreamAsync(url, cancellationToken).ConfigureAwait(false);
+                await using (response.ConfigureAwait(false))
+                {
+                    var fileStream = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.None, IODefaults.FileStreamBufferSize, FileOptions.Asynchronous);
+                    await using (fileStream.ConfigureAwait(false))
+                    {
+                        await response.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
+                    }
+                }
             }
 
             return file;

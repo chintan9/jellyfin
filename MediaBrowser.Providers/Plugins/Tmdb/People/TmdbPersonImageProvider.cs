@@ -46,10 +46,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb.People
         /// <inheritdoc />
         public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
         {
-            return new List<ImageType>
-            {
-                ImageType.Primary
-            };
+            yield return ImageType.Primary;
         }
 
         /// <inheritdoc />
@@ -69,12 +66,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb.People
                 return Enumerable.Empty<RemoteImageInfo>();
             }
 
-            var profiles = personResult.Images.Profiles;
-            var remoteImages = new List<RemoteImageInfo>(profiles.Count);
-
-            _tmdbClientManager.ConvertProfilesToRemoteImageInfo(profiles, language, remoteImages);
-
-            return remoteImages;
+            return _tmdbClientManager.ConvertProfilesToRemoteImageInfo(personResult.Images.Profiles, language);
         }
 
         /// <inheritdoc />

@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -49,10 +47,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb.TV
         /// <inheritdoc />
         public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
         {
-            return new List<ImageType>
-            {
-                ImageType.Primary
-            };
+            yield return ImageType.Primary;
         }
 
         /// <inheritdoc />
@@ -63,7 +58,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb.TV
 
             var seriesTmdbId = Convert.ToInt32(series?.GetProviderId(MetadataProvider.Tmdb), CultureInfo.InvariantCulture);
 
-            if (seriesTmdbId <= 0)
+            if (series is null || seriesTmdbId <= 0)
             {
                 return Enumerable.Empty<RemoteImageInfo>();
             }
@@ -89,11 +84,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb.TV
                 return Enumerable.Empty<RemoteImageInfo>();
             }
 
-            var remoteImages = new List<RemoteImageInfo>(stills.Count);
-
-            _tmdbClientManager.ConvertStillsToRemoteImageInfo(stills, language, remoteImages);
-
-            return remoteImages;
+            return _tmdbClientManager.ConvertStillsToRemoteImageInfo(stills, language);
         }
 
         /// <inheritdoc />

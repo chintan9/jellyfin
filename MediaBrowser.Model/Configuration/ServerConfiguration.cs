@@ -194,7 +194,7 @@ namespace MediaBrowser.Model.Configuration
 
         public string[] CodecsUsed { get; set; } = Array.Empty<string>();
 
-        public List<RepositoryInfo> PluginRepositories { get; set; } = new List<RepositoryInfo>();
+        public RepositoryInfo[] PluginRepositories { get; set; } = Array.Empty<RepositoryInfo>();
 
         public bool EnableExternalContentInSuggestions { get; set; } = true;
 
@@ -243,21 +243,21 @@ namespace MediaBrowser.Model.Configuration
         public bool AllowClientLogUpload { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets the dummy chapters duration in seconds.
+        /// Gets or sets the dummy chapter duration in seconds, use 0 (zero) or less to disable generation alltogether.
         /// </summary>
         /// <value>The dummy chapters duration.</value>
-        public int DummyChapterDuration { get; set; } = 300;
-
-        /// <summary>
-        /// Gets or sets the dummy chapter count.
-        /// </summary>
-        /// <value>The dummy chapter count.</value>
-        public int DummyChapterCount { get; set; } = 100;
+        public int DummyChapterDuration { get; set; } = 0;
 
         /// <summary>
         /// Gets or sets the chapter image resolution.
         /// </summary>
         /// <value>The chapter image resolution.</value>
         public ImageResolution ChapterImageResolution { get; set; } = ImageResolution.MatchSource;
+
+        /// <summary>
+        /// Gets or sets the limit for parallel image encoding.
+        /// </summary>
+        /// <value>The limit for parallel image encoding.</value>
+        public int ParallelImageEncodingLimit { get; set; } = 0;
     }
 }

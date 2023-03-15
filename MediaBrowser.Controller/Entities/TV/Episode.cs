@@ -308,6 +308,11 @@ namespace MediaBrowser.Controller.Entities.TV
                 id.SeriesDisplayOrder = series.DisplayOrder;
             }
 
+            if (Season is not null)
+            {
+                id.SeasonProviderIds = Season.ProviderIds;
+            }
+
             id.IsMissingEpisode = IsMissingEpisode;
             id.IndexNumberEnd = IndexNumberEnd;
 
@@ -320,7 +325,7 @@ namespace MediaBrowser.Controller.Entities.TV
 
             if (!IsLocked)
             {
-                if (SourceType == SourceType.Library)
+                if (SourceType == SourceType.Library || SourceType == SourceType.LiveTV)
                 {
                     try
                     {

@@ -25,7 +25,7 @@ namespace Jellyfin.Server.Migrations.Routines
 
         private readonly ILogger<MigrateDisplayPreferencesDb> _logger;
         private readonly IServerApplicationPaths _paths;
-        private readonly IDbContextFactory<JellyfinDb> _provider;
+        private readonly IDbContextFactory<JellyfinDbContext> _provider;
         private readonly JsonSerializerOptions _jsonOptions;
         private readonly IUserManager _userManager;
 
@@ -39,7 +39,7 @@ namespace Jellyfin.Server.Migrations.Routines
         public MigrateDisplayPreferencesDb(
             ILogger<MigrateDisplayPreferencesDb> logger,
             IServerApplicationPaths paths,
-            IDbContextFactory<JellyfinDb> provider,
+            IDbContextFactory<JellyfinDbContext> provider,
             IUserManager userManager)
         {
             _logger = logger;
@@ -130,7 +130,7 @@ namespace Jellyfin.Server.Migrations.Routines
                         SkipForwardLength = dto.CustomPrefs.TryGetValue("skipForwardLength", out var length) && int.TryParse(length, out var skipForwardLength)
                             ? skipForwardLength
                             : 30000,
-                        SkipBackwardLength = dto.CustomPrefs.TryGetValue("skipBackLength", out length) && !string.IsNullOrEmpty(length) && int.TryParse(length, out var skipBackwardLength)
+                        SkipBackwardLength = dto.CustomPrefs.TryGetValue("skipBackLength", out length) && int.TryParse(length, out var skipBackwardLength)
                             ? skipBackwardLength
                             : 10000,
                         EnableNextVideoInfoOverlay = dto.CustomPrefs.TryGetValue("enableNextVideoInfoOverlay", out var enabled) && !string.IsNullOrEmpty(enabled)

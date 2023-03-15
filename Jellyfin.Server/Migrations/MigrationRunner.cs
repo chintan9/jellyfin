@@ -21,7 +21,9 @@ namespace Jellyfin.Server.Migrations
         /// </summary>
         private static readonly Type[] _preStartupMigrationTypes =
         {
-            typeof(PreStartupRoutines.CreateNetworkConfiguration)
+            typeof(PreStartupRoutines.CreateNetworkConfiguration),
+            typeof(PreStartupRoutines.MigrateMusicBrainzTimeout),
+            typeof(PreStartupRoutines.MigrateRatingLevels)
         };
 
         /// <summary>
@@ -38,7 +40,6 @@ namespace Jellyfin.Server.Migrations
             typeof(Routines.ReaddDefaultPluginRepository),
             typeof(Routines.MigrateDisplayPreferencesDb),
             typeof(Routines.RemoveDownloadImagesInAdvance),
-            typeof(Routines.AddPeopleQueryIndex),
             typeof(Routines.MigrateAuthenticationDb)
         };
 

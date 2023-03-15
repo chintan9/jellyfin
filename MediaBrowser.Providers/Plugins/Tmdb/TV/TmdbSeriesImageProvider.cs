@@ -48,7 +48,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb.TV
         /// <inheritdoc />
         public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
         {
-            return new List<ImageType>
+            return new ImageType[]
             {
                 ImageType.Primary,
                 ImageType.Backdrop,
@@ -83,9 +83,9 @@ namespace MediaBrowser.Providers.Plugins.Tmdb.TV
             var logos = series.Images.Logos;
             var remoteImages = new List<RemoteImageInfo>(posters.Count + backdrops.Count + logos.Count);
 
-            _tmdbClientManager.ConvertPostersToRemoteImageInfo(posters, language, remoteImages);
-            _tmdbClientManager.ConvertBackdropsToRemoteImageInfo(backdrops, language, remoteImages);
-            _tmdbClientManager.ConvertLogosToRemoteImageInfo(logos, language, remoteImages);
+            remoteImages.AddRange(_tmdbClientManager.ConvertPostersToRemoteImageInfo(posters, language));
+            remoteImages.AddRange(_tmdbClientManager.ConvertBackdropsToRemoteImageInfo(backdrops, language));
+            remoteImages.AddRange(_tmdbClientManager.ConvertLogosToRemoteImageInfo(logos, language));
 
             return remoteImages;
         }
