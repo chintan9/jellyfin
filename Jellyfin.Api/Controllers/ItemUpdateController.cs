@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Api.Constants;
+using Jellyfin.Data.Enums;
+using MediaBrowser.Common.Api;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
@@ -164,18 +166,16 @@ public class ItemUpdateController : BaseJellyfinApiController
             var inheritedContentType = _libraryManager.GetInheritedContentType(item);
             var configuredContentType = _libraryManager.GetConfiguredContentType(item);
 
-            if (string.IsNullOrWhiteSpace(inheritedContentType) ||
-                !string.IsNullOrWhiteSpace(configuredContentType))
+            if (inheritedContentType is null || configuredContentType is not null)
             {
                 info.ContentTypeOptions = GetContentTypeOptions(true).ToArray();
                 info.ContentType = configuredContentType;
 
-                if (string.IsNullOrWhiteSpace(inheritedContentType)
-                    || string.Equals(inheritedContentType, CollectionType.TvShows, StringComparison.OrdinalIgnoreCase))
+                if (inheritedContentType is null || inheritedContentType == CollectionType.tvshows)
                 {
                     info.ContentTypeOptions = info.ContentTypeOptions
                         .Where(i => string.IsNullOrWhiteSpace(i.Value)
-                                    || string.Equals(i.Value, CollectionType.TvShows, StringComparison.OrdinalIgnoreCase))
+                                    || string.Equals(i.Value, "TvShows", StringComparison.OrdinalIgnoreCase))
                         .ToArray();
                 }
             }
@@ -251,8 +251,6 @@ public class ItemUpdateController : BaseJellyfinApiController
             channel.Height = request.Height.Value;
         }
 
-        item.Tags = request.Tags;
-
         if (request.Taglines is not null)
         {
             item.Tagline = request.Taglines.FirstOrDefault();
@@ -276,12 +274,19 @@ public class ItemUpdateController : BaseJellyfinApiController
         item.OfficialRating = request.OfficialRating;
         item.CustomRating = request.CustomRating;
 
+        var currentTags = item.Tags;
+        var newTags = request.Tags;
+        var removedTags = currentTags.Except(newTags).ToList();
+        var addedTags = newTags.Except(currentTags).ToList();
+        item.Tags = newTags;
+
         if (item is Series rseries)
         {
             foreach (Season season in rseries.Children)
             {
                 season.OfficialRating = request.OfficialRating;
                 season.CustomRating = request.CustomRating;
+                season.Tags = season.Tags.Concat(addedTags).Except(removedTags).Distinct().ToArray();
                 season.OnMetadataChanged();
                 await season.UpdateToRepositoryAsync(ItemUpdateType.MetadataEdit, CancellationToken.None).ConfigureAwait(false);
 
@@ -289,6 +294,7 @@ public class ItemUpdateController : BaseJellyfinApiController
                 {
                     ep.OfficialRating = request.OfficialRating;
                     ep.CustomRating = request.CustomRating;
+                    ep.Tags = ep.Tags.Concat(addedTags).Except(removedTags).Distinct().ToArray();
                     ep.OnMetadataChanged();
                     await ep.UpdateToRepositoryAsync(ItemUpdateType.MetadataEdit, CancellationToken.None).ConfigureAwait(false);
                 }
@@ -300,6 +306,7 @@ public class ItemUpdateController : BaseJellyfinApiController
             {
                 ep.OfficialRating = request.OfficialRating;
                 ep.CustomRating = request.CustomRating;
+                ep.Tags = ep.Tags.Concat(addedTags).Except(removedTags).Distinct().ToArray();
                 ep.OnMetadataChanged();
                 await ep.UpdateToRepositoryAsync(ItemUpdateType.MetadataEdit, CancellationToken.None).ConfigureAwait(false);
             }
@@ -310,6 +317,7 @@ public class ItemUpdateController : BaseJellyfinApiController
             {
                 track.OfficialRating = request.OfficialRating;
                 track.CustomRating = request.CustomRating;
+                track.Tags = track.Tags.Concat(addedTags).Except(removedTags).Distinct().ToArray();
                 track.OnMetadataChanged();
                 await track.UpdateToRepositoryAsync(ItemUpdateType.MetadataEdit, CancellationToken.None).ConfigureAwait(false);
             }

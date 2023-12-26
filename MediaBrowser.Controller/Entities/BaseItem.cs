@@ -129,6 +129,13 @@ namespace MediaBrowser.Controller.Entities
         public string Album { get; set; }
 
         /// <summary>
+        /// Gets or sets the LUFS value.
+        /// </summary>
+        /// <value>The LUFS Value.</value>
+        [JsonIgnore]
+        public float LUFS { get; set; }
+
+        /// <summary>
         /// Gets or sets the channel identifier.
         /// </summary>
         /// <value>The channel identifier.</value>
@@ -415,7 +422,7 @@ namespace MediaBrowser.Controller.Entities
         /// </summary>
         /// <value>The type of the media.</value>
         [JsonIgnore]
-        public virtual string MediaType => null;
+        public virtual MediaType MediaType => MediaType.Unknown;
 
         [JsonIgnore]
         public virtual string[] PhysicalLocations
@@ -717,7 +724,7 @@ namespace MediaBrowser.Controller.Entities
 
                 if (this is IHasCollectionType view)
                 {
-                    if (string.Equals(view.CollectionType, CollectionType.LiveTv, StringComparison.OrdinalIgnoreCase))
+                    if (view.CollectionType == CollectionType.livetv)
                     {
                         return true;
                     }
@@ -801,16 +808,14 @@ namespace MediaBrowser.Controller.Entities
             {
                 return allowed.Contains(ChannelId);
             }
-            else
-            {
-                var collectionFolders = LibraryManager.GetCollectionFolders(this, allCollectionFolders);
 
-                foreach (var folder in collectionFolders)
+            var collectionFolders = LibraryManager.GetCollectionFolders(this, allCollectionFolders);
+
+            foreach (var folder in collectionFolders)
+            {
+                if (allowed.Contains(folder.Id))
                 {
-                    if (allowed.Contains(folder.Id))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
@@ -893,16 +898,6 @@ namespace MediaBrowser.Controller.Entities
 
             var sortable = Name.Trim().ToLowerInvariant();
 
-            foreach (var removeChar in ConfigurationManager.Configuration.SortRemoveCharacters)
-            {
-                sortable = sortable.Replace(removeChar, string.Empty, StringComparison.Ordinal);
-            }
-
-            foreach (var replaceChar in ConfigurationManager.Configuration.SortReplaceCharacters)
-            {
-                sortable = sortable.Replace(replaceChar, " ", StringComparison.Ordinal);
-            }
-
             foreach (var search in ConfigurationManager.Configuration.SortRemoveWords)
             {
                 // Remove from beginning if a space follows
@@ -921,12 +916,22 @@ namespace MediaBrowser.Controller.Entities
                 }
             }
 
+            foreach (var removeChar in ConfigurationManager.Configuration.SortRemoveCharacters)
+            {
+                sortable = sortable.Replace(removeChar, string.Empty, StringComparison.Ordinal);
+            }
+
+            foreach (var replaceChar in ConfigurationManager.Configuration.SortReplaceCharacters)
+            {
+                sortable = sortable.Replace(replaceChar, " ", StringComparison.Ordinal);
+            }
+
             return ModifySortChunks(sortable);
         }
 
-        internal static string ModifySortChunks(string name)
+        internal static string ModifySortChunks(ReadOnlySpan<char> name)
         {
-            void AppendChunk(StringBuilder builder, bool isDigitChunk, ReadOnlySpan<char> chunk)
+            static void AppendChunk(StringBuilder builder, bool isDigitChunk, ReadOnlySpan<char> chunk)
             {
                 if (isDigitChunk && chunk.Length < 10)
                 {
@@ -936,7 +941,7 @@ namespace MediaBrowser.Controller.Entities
                 builder.Append(chunk);
             }
 
-            if (name.Length == 0)
+            if (name.IsEmpty)
             {
                 return string.Empty;
             }
@@ -950,13 +955,13 @@ namespace MediaBrowser.Controller.Entities
                 var isDigit = char.IsDigit(name[i]);
                 if (isDigit != isDigitChunk)
                 {
-                    AppendChunk(builder, isDigitChunk, name.AsSpan(chunkStart, i - chunkStart));
+                    AppendChunk(builder, isDigitChunk, name.Slice(chunkStart, i - chunkStart));
                     chunkStart = i;
                     isDigitChunk = isDigit;
                 }
             }
 
-            AppendChunk(builder, isDigitChunk, name.AsSpan(chunkStart));
+            AppendChunk(builder, isDigitChunk, name.Slice(chunkStart));
 
             // logger.LogDebug("ModifySortChunks Start: {0} End: {1}", name, builder.ToString());
             return builder.ToString().RemoveDiacritics();
@@ -1239,14 +1244,6 @@ namespace MediaBrowser.Controller.Entities
             return RefreshMetadata(new MetadataRefreshOptions(new DirectoryService(FileSystem)), cancellationToken);
         }
 
-        protected virtual void TriggerOnRefreshStart()
-        {
-        }
-
-        protected virtual void TriggerOnRefreshComplete()
-        {
-        }
-
         /// <summary>
         /// Overrides the base implementation to refresh metadata for local trailers.
         /// </summary>
@@ -1255,8 +1252,6 @@ namespace MediaBrowser.Controller.Entities
         /// <returns>true if a provider reports we changed.</returns>
         public async Task<ItemUpdateType> RefreshMetadata(MetadataRefreshOptions options, CancellationToken cancellationToken)
         {
-            TriggerOnRefreshStart();
-
             var requiresSave = false;
 
             if (SupportsOwnedItems)
@@ -1276,21 +1271,14 @@ namespace MediaBrowser.Controller.Entities
                 }
             }
 
-            try
-            {
-                var refreshOptions = requiresSave
-                    ? new MetadataRefreshOptions(options)
-                    {
-                        ForceSave = true
-                    }
-                    : options;
+            var refreshOptions = requiresSave
+                ? new MetadataRefreshOptions(options)
+                {
+                    ForceSave = true
+                }
+                : options;
 
-                return await ProviderManager.RefreshSingleItem(this, refreshOptions, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                TriggerOnRefreshComplete();
-            }
+            return await ProviderManager.RefreshSingleItem(this, refreshOptions, cancellationToken).ConfigureAwait(false);
         }
 
         protected bool IsVisibleStandaloneInternal(User user, bool checkFolders)
@@ -1362,7 +1350,7 @@ namespace MediaBrowser.Controller.Entities
         private async Task<bool> RefreshExtras(BaseItem item, MetadataRefreshOptions options, IReadOnlyList<FileSystemMetadata> fileSystemChildren, CancellationToken cancellationToken)
         {
             var extras = LibraryManager.FindExtras(item, fileSystemChildren, options.DirectoryService).ToArray();
-            var newExtraIds = extras.Select(i => i.Id).ToArray();
+            var newExtraIds = Array.ConvertAll(extras, x => x.Id);
             var extrasChanged = !item.ExtraIds.SequenceEqual(newExtraIds);
 
             if (!extrasChanged && !options.ReplaceAllMetadata && options.MetadataRefreshMode != MetadataRefreshMode.FullRefresh)
@@ -1876,7 +1864,7 @@ namespace MediaBrowser.Controller.Entities
         /// <exception cref="ArgumentException">Backdrops should be accessed using Item.Backdrops.</exception>
         public bool HasImage(ImageType type, int imageIndex)
         {
-            return GetImageInfo(type, imageIndex) != null;
+            return GetImageInfo(type, imageIndex) is not null;
         }
 
         public void SetImage(ItemImageInfo image, int index)

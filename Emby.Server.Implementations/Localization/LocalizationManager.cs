@@ -71,25 +71,28 @@ namespace Emby.Server.Implementations.Localization
                 string countryCode = resource.Substring(RatingsPath.Length, 2);
                 var dict = new Dictionary<string, ParentalRating>(StringComparer.OrdinalIgnoreCase);
 
-                await using var stream = _assembly.GetManifestResourceStream(resource);
-                using var reader = new StreamReader(stream!); // shouldn't be null here, we just got the resource path from Assembly.GetManifestResourceNames()
-                await foreach (var line in reader.ReadAllLinesAsync().ConfigureAwait(false))
+                var stream = _assembly.GetManifestResourceStream(resource);
+                await using (stream!.ConfigureAwait(false)) // shouldn't be null here, we just got the resource path from Assembly.GetManifestResourceNames()
                 {
-                    if (string.IsNullOrWhiteSpace(line))
+                    using var reader = new StreamReader(stream!);
+                    await foreach (var line in reader.ReadAllLinesAsync().ConfigureAwait(false))
                     {
-                        continue;
-                    }
+                        if (string.IsNullOrWhiteSpace(line))
+                        {
+                            continue;
+                        }
 
-                    string[] parts = line.Split(',');
-                    if (parts.Length == 2
-                        && int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
-                    {
-                        var name = parts[0];
-                        dict.Add(name, new ParentalRating(name, value));
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Malformed line in ratings file for country {CountryCode}", countryCode);
+                        string[] parts = line.Split(',');
+                        if (parts.Length == 2
+                            && int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
+                        {
+                            var name = parts[0];
+                            dict.Add(name, new ParentalRating(name, value));
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Malformed line in ratings file for country {CountryCode}", countryCode);
+                        }
                     }
                 }
 
@@ -198,25 +201,25 @@ namespace Emby.Server.Implementations.Localization
             }
 
             // Minimum rating possible
-            if (!ratings.Any(x => x.Value == 0))
+            if (ratings.All(x => x.Value != 0))
             {
                 ratings.Add(new ParentalRating("Approved", 0));
             }
 
             // Matches PG (this has different age restrictions depending on country)
-            if (!ratings.Any(x => x.Value == 10))
+            if (ratings.All(x => x.Value != 10))
             {
                 ratings.Add(new ParentalRating("10", 10));
             }
 
             // Matches PG-13
-            if (!ratings.Any(x => x.Value == 13))
+            if (ratings.All(x => x.Value != 13))
             {
                 ratings.Add(new ParentalRating("13", 13));
             }
 
             // Matches TV-14
-            if (!ratings.Any(x => x.Value == 14))
+            if (ratings.All(x => x.Value != 14))
             {
                 ratings.Add(new ParentalRating("14", 14));
             }
@@ -229,13 +232,13 @@ namespace Emby.Server.Implementations.Localization
             }
 
             // A lot of countries don't excplicitly have a seperate rating for adult content
-            if (!ratings.Any(x => x.Value == 1000))
+            if (ratings.All(x => x.Value != 1000))
             {
                 ratings.Add(new ParentalRating("XXX", 1000));
             }
 
             // A lot of countries don't excplicitly have a seperate rating for banned content
-            if (!ratings.Any(x => x.Value == 1001))
+            if (ratings.All(x => x.Value != 1001))
             {
                 ratings.Add(new ParentalRating("Banned", 1001));
             }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using Jellyfin.Data.Enums;
 using MediaBrowser.Model.Entities;
 using TMDbLib.Objects.General;
 
@@ -10,10 +11,8 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
     /// <summary>
     /// Utilities for the TMDb provider.
     /// </summary>
-    public static class TmdbUtils
+    public static partial class TmdbUtils
     {
-        private static readonly Regex _nonWords = new(@"[\W_]+", RegexOptions.Compiled);
-
         /// <summary>
         /// URL of the TMDb instance to use.
         /// </summary>
@@ -40,6 +39,19 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         };
 
         /// <summary>
+        /// The crew kinds to keep.
+        /// </summary>
+        public static readonly PersonKind[] WantedCrewKinds =
+        {
+            PersonKind.Director,
+            PersonKind.Writer,
+            PersonKind.Producer
+        };
+
+        [GeneratedRegex(@"[\W_]+")]
+        private static partial Regex NonWordRegex();
+
+        /// <summary>
         /// Cleans the name according to TMDb requirements.
         /// </summary>
         /// <param name="name">The name of the entity.</param>
@@ -47,7 +59,7 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         public static string CleanName(string name)
         {
             // TMDb expects a space separated list of words make sure that is the case
-            return _nonWords.Replace(name, " ");
+            return NonWordRegex().Replace(name, " ");
         }
 
         /// <summary>
@@ -55,26 +67,26 @@ namespace MediaBrowser.Providers.Plugins.Tmdb
         /// </summary>
         /// <param name="crew">Crew member to map against the Jellyfin person types.</param>
         /// <returns>The Jellyfin person type.</returns>
-        public static string MapCrewToPersonType(Crew crew)
+        public static PersonKind MapCrewToPersonType(Crew crew)
         {
             if (crew.Department.Equals("production", StringComparison.OrdinalIgnoreCase)
                 && crew.Job.Contains("director", StringComparison.OrdinalIgnoreCase))
             {
-                return PersonType.Director;
+                return PersonKind.Director;
             }
 
             if (crew.Department.Equals("production", StringComparison.OrdinalIgnoreCase)
                 && crew.Job.Contains("producer", StringComparison.OrdinalIgnoreCase))
             {
-                return PersonType.Producer;
+                return PersonKind.Producer;
             }
 
             if (crew.Department.Equals("writing", StringComparison.OrdinalIgnoreCase))
             {
-                return PersonType.Writer;
+                return PersonKind.Writer;
             }
 
-            return string.Empty;
+            return PersonKind.Unknown;
         }
 
         /// <summary>
