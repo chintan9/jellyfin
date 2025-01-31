@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Jellyfin.Api.Extensions;
@@ -90,7 +91,7 @@ public class YearsController : BaseJellyfinApiController
             .AddClientFields(User)
             .AddAdditionalDtoOptions(enableImages, enableUserData, imageTypeLimit, enableImageTypes);
 
-        User? user = userId.Value.Equals(default)
+        User? user = userId.IsNullOrEmpty()
             ? null
             : _userManager.GetUserById(userId.Value);
         BaseItem parentItem = _libraryManager.GetParentItem(parentId, userId);
@@ -105,18 +106,18 @@ public class YearsController : BaseJellyfinApiController
 
         bool Filter(BaseItem i) => FilterItem(i, excludeItemTypes, includeItemTypes, mediaTypes);
 
-        IList<BaseItem> items;
+        IReadOnlyList<BaseItem> items;
         if (parentItem.IsFolder)
         {
             var folder = (Folder)parentItem;
 
-            if (userId.Equals(default))
+            if (userId.IsNullOrEmpty())
             {
-                items = recursive ? folder.GetRecursiveChildren(Filter) : folder.Children.Where(Filter).ToList();
+                items = recursive ? folder.GetRecursiveChildren(Filter) : folder.Children.Where(Filter).ToArray();
             }
             else
             {
-                items = recursive ? folder.GetRecursiveChildren(user, query).ToList() : folder.GetChildren(user, true).Where(Filter).ToList();
+                items = recursive ? folder.GetRecursiveChildren(user, query) : folder.GetChildren(user, true).Where(Filter).ToArray();
             }
         }
         else
@@ -182,7 +183,7 @@ public class YearsController : BaseJellyfinApiController
         var dtoOptions = new DtoOptions()
             .AddClientFields(User);
 
-        if (!userId.Value.Equals(default))
+        if (!userId.IsNullOrEmpty())
         {
             var user = _userManager.GetUserById(userId.Value);
             return _dtoService.GetBaseItemDto(item, dtoOptions, user);
