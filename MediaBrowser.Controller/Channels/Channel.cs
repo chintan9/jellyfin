@@ -9,7 +9,6 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using Jellyfin.Data.Entities;
 using Jellyfin.Data.Enums;
-using MediaBrowser.Common.Progress;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Querying;
 
@@ -23,7 +22,7 @@ namespace MediaBrowser.Controller.Channels
         [JsonIgnore]
         public override SourceType SourceType => SourceType.Channel;
 
-        public override bool IsVisible(User user)
+        public override bool IsVisible(User user, bool skipAllowedTagsCheck = false)
         {
             var blockedChannelsPreference = user.GetPreferenceValues<Guid>(PreferenceKind.BlockedChannels);
             if (blockedChannelsPreference.Length != 0)
@@ -42,7 +41,7 @@ namespace MediaBrowser.Controller.Channels
                 }
             }
 
-            return base.IsVisible(user);
+            return base.IsVisible(user, skipAllowedTagsCheck);
         }
 
         protected override QueryResult<BaseItem> GetItemsInternal(InternalItemsQuery query)
@@ -53,7 +52,7 @@ namespace MediaBrowser.Controller.Channels
                 query.ChannelIds = new Guid[] { Id };
 
                 // Don't blow up here because it could cause parent screens with other content to fail
-                return ChannelManager.GetChannelItemsInternal(query, new SimpleProgress<double>(), CancellationToken.None).GetAwaiter().GetResult();
+                return ChannelManager.GetChannelItemsInternal(query, new Progress<double>(), CancellationToken.None).GetAwaiter().GetResult();
             }
             catch
             {
